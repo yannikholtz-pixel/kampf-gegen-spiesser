@@ -4,11 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Niveaulos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <header>
-    <h1>Niveaulos</h1>
+    <h1 class="logo">Niveaulos<span class="logo-dot">.</span></h1>
     <div class="header-right">
       <button id="mute-btn" class="ghost small" title="Sound an/aus">🔊</button>
       <div id="room-info" class="hidden">
@@ -23,6 +26,7 @@
     <section id="screen-login" class="screen">
       <div class="panel">
         <h2>Spielen</h2>
+        <p class="tagline">Karten ohne Anstand · ab 2 Spielern</p>
         <label>Dein Name
           <input id="name-input" type="text" maxlength="20" placeholder="z. B. Yanni" />
         </label>

@@ -130,6 +130,44 @@ function combinedText(blackText, white) {
   return blackText + ' ' + white;
 }
 
+// --- Confetti ---
+function confetti(count = 110) {
+  const colors = ['#ff5c5c', '#ffb800', '#5dd17f', '#5c8dff', '#ff80ab', '#ffffff', '#ff3b3b'];
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (8 + Math.random() * 14) + 'px';
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.animationDuration = (2.4 + Math.random() * 2.2) + 's';
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 5000);
+  }
+}
+
+// --- Score animation ---
+const lastScores = {};
+function bumpScore(playerId) {
+  const li = document.querySelector(`#scoreboard li[data-pid="${playerId}"]`);
+  if (!li) return;
+  const numEl = li.querySelector('.score-num');
+  if (numEl) {
+    numEl.classList.remove('bumped');
+    void numEl.offsetWidth; // restart animation
+    numEl.classList.add('bumped');
+    setTimeout(() => numEl.classList.remove('bumped'), 700);
+
+    const float = document.createElement('div');
+    float.className = 'score-float';
+    float.textContent = '+1';
+    li.appendChild(float);
+    setTimeout(() => float.remove(), 1500);
+  }
+}
+
 function show(name) {
   for (const k of Object.keys(screens)) {
     screens[k].classList.toggle('hidden', k !== name);
@@ -259,7 +297,7 @@ function triggerStateSounds(prev, s) {
     } else if (s.state === 'scoring') {
       if (s.winner) {
         if (s.winner.tied || s.winner.none) soundTie();
-        else soundWin();
+        else { soundWin(); confetti(); }
       }
     }
   }
@@ -324,9 +362,11 @@ function renderGame(prev) {
   const sb = $('#scoreboard');
   sb.innerHTML = '';
   const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  const bumps = [];
   for (const p of sorted) {
     const av = getAvatar(p.avatar);
     const li = document.createElement('li');
+    li.dataset.pid = p.id;
     if (p.id === state.yourId) li.classList.add('you');
     if (!p.connected) li.classList.add('disconnected');
     let tag = '';
@@ -338,7 +378,13 @@ function renderGame(prev) {
       <span class="score-num">${p.score}</span>
     `;
     sb.appendChild(li);
+    // Detect score increase
+    const prevScore = lastScores[p.id];
+    if (prevScore !== undefined && p.score > prevScore) bumps.push(p.id);
+    lastScores[p.id] = p.score;
   }
+  // Trigger bumps after DOM is in place
+  bumps.forEach(pid => setTimeout(() => bumpScore(pid), 200));
 
   // Phase label
   const phaseText = {
@@ -421,7 +467,11 @@ function renderGame(prev) {
         const isOwn = state.yourSubmission && s.card === state.yourSubmission;
         const alreadyVoted = typeof state.yourVote === 'number';
         if (!isOwn && !alreadyVoted) {
-          card.addEventListener('click', () => socket.emit('vote', { index: s.index }));
+          card.addEventListener('click', () => {
+            card.classList.add('vote-ripple');
+            setTimeout(() => card.classList.remove('vote-ripple'), 600);
+            socket.emit('vote', { index: s.index });
+          });
         } else if (alreadyVoted && !isOwn) {
           card.classList.add('disabled');
         }
