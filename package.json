@@ -1,0 +1,13 @@
+{
+  "name": "kampf-gegen-spiesser",
+  "version": "1.0.0",
+  "description": "Online-Multiplayer-Kartenspiel im Stil von Cards Against Humanity",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}

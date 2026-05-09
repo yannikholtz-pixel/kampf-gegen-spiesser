@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kampf gegen das Spießertum</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Kampf gegen das Spießertum</h1>
+    <div id="room-info" class="hidden">
+      Raum <code id="room-code"></code>
+      <button id="leave-btn" class="ghost small">Verlassen</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Login -->
+    <section id="screen-login" class="screen">
+      <div class="panel">
+        <h2>Spielen</h2>
+        <label>Dein Name
+          <input id="name-input" type="text" maxlength="20" placeholder="z. B. Yanni" />
+        </label>
+        <div class="row">
+          <button id="create-btn" class="primary">Neuen Raum erstellen</button>
+        </div>
+        <div class="divider">oder</div>
+        <label>Raum-Code
+          <input id="code-input" type="text" maxlength="4" placeholder="ABCD" style="text-transform:uppercase" />
+        </label>
+        <button id="join-btn">Beitreten</button>
+        <p id="login-error" class="error"></p>
+      </div>
+    </section>
+
+    <!-- Lobby -->
+    <section id="screen-lobby" class="screen hidden">
+      <div class="panel">
+        <h2>Lobby</h2>
+        <p>Teile den Raum-Code <code class="big" id="lobby-code"></code> mit deinen Freunden.</p>
+        <h3>Spieler</h3>
+        <ul id="lobby-players" class="player-list"></ul>
+        <div id="lobby-host-controls" class="hidden">
+          <button id="start-btn" class="primary">Spiel starten</button>
+          <p class="hint">Mindestens 2 Spieler.</p>
+        </div>
+        <div id="lobby-waiting" class="hidden">
+          <p>Wartet auf Host...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game -->
+    <section id="screen-game" class="screen hidden">
+      <div class="game-layout">
+        <aside class="sidebar">
+          <h3>Punkte</h3>
+          <ul id="scoreboard" class="player-list"></ul>
+          <p class="phase" id="phase-label"></p>
+        </aside>
+
+        <div class="play-area">
+          <div id="black-card" class="card black"></div>
+
+          <div id="status-area" class="status"></div>
+
+          <div id="submissions-area" class="submissions"></div>
+
+          <div id="winner-area" class="winner hidden"></div>
+
+          <div id="host-controls" class="host-controls hidden"></div>
+
+          <div id="hand-area" class="hand">
+            <h3>Deine Karten</h3>
+            <div id="hand" class="hand-cards"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
+</body>
+</html>
