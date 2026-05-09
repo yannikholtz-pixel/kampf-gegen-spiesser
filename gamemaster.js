@@ -13,6 +13,17 @@ const LEADER = [
   "[NAME] hat einen Lauf. Aber irgendwann kommt der Knick.",
   "[NAME] siegt. Andere haben ein Sozialleben.",
   "[NAME] gewinnt schon wieder. Wer hat dich eingeladen?",
+  "[NAME], dein Sieg-Drang ist ein Hilfeschrei. Wir hören dich.",
+  "[NAME] gewinnt — was als Kind keiner gemacht hat.",
+  "[NAME] führt, weil zuhause niemand wartet.",
+  "[NAME] dominiert hier, weil sie sonst nichts kann.",
+  "[NAME], du bist gut. Aber leer.",
+  "[NAME] punktet wie andere atmen — automatisch und sinnlos.",
+  "[NAME] gewinnt, weil das Universum dich hasst.",
+  "[NAME], Punkte ersetzen keine Liebe.",
+  "[NAME] führt — wenigstens eine Sache, die du geschafft hast.",
+  "[NAME], dein Therapeut wird stolz. Niemand sonst.",
+  "[NAME] dominiert. Wenigstens das, [NAME].",
 ];
 
 const LAST = [
@@ -29,6 +40,22 @@ const LAST = [
   "Hat jemand [NAME] eingeladen? Niemand erinnert sich.",
   "[NAME] verfolgt einen sehr eigenen Spielansatz: nicht gewinnen.",
   "[NAME], du bist im Bremsen wirklich gut.",
+  "[NAME], deine Eltern haben eine Lieblingsperson — und es ist nicht du.",
+  "[NAME], statistisch gesehen wirst du allein sterben.",
+  "[NAME] ist der Grund, warum Familienfeiern unangenehm sind.",
+  "[NAME], 0 Punkte. Wie deine Tinder-Erfolgsquote.",
+  "[NAME], deine Anwesenheit ist die schwerste Karte des Spiels.",
+  "[NAME] verliert wie [NAME] liebt: vergeblich.",
+  "[NAME], 0 Punkte. Kein Zufall.",
+  "[NAME], dein Trauma macht dich nicht witziger.",
+  "[NAME], war's das mit dem Selbstwert?",
+  "[NAME], deine Mutter wäre enttäuscht. Wieder mal.",
+  "[NAME], du bist nicht der Hauptcharakter. Hast du nie kapiert.",
+  "[NAME] hat 0 Punkte und einen leeren Kühlschrank. Konsistent.",
+  "[NAME], niemand denkt an dich. Auch jetzt nicht.",
+  "[NAME], deine Witze sterben schneller als deine Beziehungen.",
+  "[NAME] punktet so erfolgreich wie andere flirten — gar nicht.",
+  "[NAME], dein Lachen klingt wie ein Hilfeschrei.",
 ];
 
 const TIE_TOP = [
@@ -53,6 +80,22 @@ const GENERIC = [
   "Ihr seid alle nicht zu retten. Aber das wisst ihr schon.",
   "Eine Runde Schweigen für eure Lebenswahl.",
   "Wenigstens trinken wir alle dasselbe.",
+  "Bei euch zuhause läuft auch keiner zur Tür.",
+  "Eure Eltern schauen jetzt zu und fragen sich, was schiefgelaufen ist.",
+  "Die Welt hat größere Probleme. Aber ihr seid hier.",
+  "Eine Beerdigung wäre fröhlicher.",
+  "Statistisch trinken Spieler dieses Spiels mehr als andere. Aus gutem Grund.",
+  "Ich höre eure Single-Wohnungen schreien.",
+  "Niemand hier wird auf einer Hochzeit fotografiert. Außer als Statist.",
+  "Eure Therapeuten haben die nächste Sitzung schon dreifach gebucht.",
+  "Der Witz heute Abend ist nicht das Spiel. Sondern dass ihr es spielt.",
+  "Ihr seid alle eine kleine Enttäuschung — aber das ist okay.",
+  "Lautes Lachen, leere Konten.",
+  "Euer Sexleben würde diese Karten nicht überleben.",
+  "Wenn Einsamkeit eine Punktzahl wäre, würden alle hier gewinnen.",
+  "Die einzige Wärme heute Abend kommt vom Heizkörper.",
+  "Eure Schwiegermütter würden's auch nicht witzig finden.",
+  "Macht weiter. Es ändert nichts.",
 ];
 
 const BIG_LEAD = [
@@ -62,6 +105,11 @@ const BIG_LEAD = [
   "[NAME] hat das hier verstanden. Die anderen sind dekorativ.",
   "[NAME] zerlegt die Konkurrenz wie Lauterbach die Krankenkasse.",
   "[NAME] führt unverschämt deutlich. Beleidigung der Restmannschaft.",
+  "[NAME] zerlegt euch alle. Kostenloses Selbstwert-Erlebnis pro Generation.",
+  "[NAME] führt so deutlich, dass ihr besser aufgebt. Aber das passt zu euch.",
+  "[NAME] gewinnt. Die anderen sind das Beiwerk in seinem Leben.",
+  "[NAME] dominiert. Niveau hat hier sonst keiner.",
+  "[NAME] gewinnt — der Rest ist emotional bedürftig.",
 ];
 
 const FIRST_POINT = [
@@ -80,6 +128,9 @@ const VOTE_TIE = [
   "Unentschieden. Niemand wollte sich entscheiden — typisch deutsch.",
   "Pattsituation. Demokratie hat verloren.",
   "Gleichstand bei den Stimmen. Klassisch peinlich.",
+  "Niemand wollte sich entscheiden. Wie bei euren Beziehungen.",
+  "Patt. Ihr seid alle gleich mittelmäßig.",
+  "Unentschieden — wie das Leben aller Beteiligten.",
 ];
 
 const NO_VOTES = [
