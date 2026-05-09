@@ -541,6 +541,27 @@ function renderGame(prev) {
     winnerEl.classList.add('hidden');
   }
 
+  // Gamemaster message
+  const gmEl = $('#gm-area');
+  const gmText = gmEl.querySelector('.gm-text');
+  if (state.state === 'scoring' && state.gmMessage) {
+    gmEl.classList.remove('hidden');
+    if (gmText.textContent !== state.gmMessage) {
+      gmText.textContent = state.gmMessage;
+      // Re-trigger entrance animation when message changes
+      gmEl.style.animation = 'none';
+      void gmEl.offsetWidth;
+      gmEl.style.animation = '';
+    }
+    // Auto-read GM message after winner sentence (~3.5s delay)
+    if (prev && prev.gmMessage !== state.gmMessage) {
+      setTimeout(() => speak(state.gmMessage, null), 3500);
+    }
+  } else {
+    gmEl.classList.add('hidden');
+    gmText.textContent = '';
+  }
+
   // Auto-progress countdown
   const hc = $('#host-controls');
   hc.innerHTML = '';

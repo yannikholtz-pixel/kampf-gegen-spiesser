@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const cards = require('./cards');
+const gm = require('./gamemaster');
 
 const HAND_SIZE = 7;
 const MIN_PLAYERS = 2;
@@ -89,6 +90,7 @@ function scheduleAutoNextRound(room) {
 function startRound(room) {
   clearRoomTimer(room);
   room.nextActionAt = null;
+  room.gmMessage = null;
   if (room.blackDeck.length === 0) room.blackDeck = shuffle(cards.blackCards);
   room.blackCard = room.blackDeck.pop();
   room.submissions = [];
@@ -133,6 +135,7 @@ function publicState(room) {
     submissionCount: room.submissions ? room.submissions.length : 0,
     winner: room.winner || null,
     nextActionAt: room.nextActionAt || null,
+    gmMessage: room.gmMessage || null,
   };
 }
 
@@ -188,6 +191,7 @@ function tallyVotes(room) {
     room.winner = { tied: false, none: true };
   }
   room.state = 'scoring';
+  room.gmMessage = gm.generateMessage(room.players, room.winner);
   scheduleAutoNextRound(room);
 }
 

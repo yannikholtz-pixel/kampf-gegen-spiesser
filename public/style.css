@@ -835,6 +835,58 @@ code.big {
   50% { box-shadow: 0 0 0 8px transparent; }
 }
 
+/* Gamemaster message */
+.gm-message {
+  background:
+    radial-gradient(ellipse at left, rgba(255, 184, 0, 0.18), transparent 60%),
+    linear-gradient(135deg, rgba(255, 184, 0, 0.06), rgba(255, 59, 59, 0.04));
+  border: 1px solid rgba(255, 184, 0, 0.45);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--accent);
+  animation: gmIn 0.55s cubic-bezier(0.22, 1.2, 0.36, 1.1);
+  box-shadow: 0 0 28px rgba(255, 184, 0, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.gm-message::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 184, 0, 0.08), transparent);
+  animation: gmShine 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes gmIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes gmShine {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+.gm-icon {
+  font-size: 26px;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  animation: gmIconWobble 0.8s ease;
+}
+@keyframes gmIconWobble {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(12deg); }
+}
+.gm-text {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  font-style: italic;
+  color: #ffd770;
+  flex: 1;
+}
+
 /* Confetti */
 .confetti-piece {
   position: fixed;
