@@ -1,7 +1,7 @@
 {
-  "name": "kampf-gegen-spiesser",
+  "name": "niveaulos",
   "version": "1.0.0",
-  "description": "Online-Multiplayer-Kartenspiel im Stil von Cards Against Humanity",
+  "description": "Niveaulos — Online-Multiplayer-Kartenspiel im Stil von Cards Against Humanity",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

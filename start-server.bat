@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Spiel-Server
+title Niveaulos - Server
 cd /d "%~dp0"
 echo.
 echo Spiel-Server laeuft. Fenster offen lassen!

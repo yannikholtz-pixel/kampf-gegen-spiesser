@@ -372,7 +372,7 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`\n  Kampf gegen das Spießertum läuft!`);
+  console.log(`\n  Niveaulos läuft!`);
   console.log(`  Lokal:    http://localhost:${PORT}`);
   const os = require('os');
   const ifaces = os.networkInterfaces();
