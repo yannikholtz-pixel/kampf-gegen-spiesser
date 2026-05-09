@@ -111,6 +111,7 @@ function publicState(room) {
     players: room.players.map(p => ({
       id: p.id,
       name: p.name,
+      avatar: p.avatar || 'clown',
       score: p.score,
       isHost: p.isHost,
       hasSubmitted: !!p.submission,
@@ -124,6 +125,7 @@ function publicState(room) {
           revealed: i < room.revealedIndex || room.state !== 'reveal',
           card: (i < room.revealedIndex || room.state !== 'reveal') ? s.card : null,
           playerName: room.state === 'scoring' ? s.playerName : null,
+          playerAvatar: room.state === 'scoring' ? s.playerAvatar : null,
           votes: room.state === 'scoring' ? (room.voteCounts[i] || 0) : null,
         }))
       : [],
@@ -234,8 +236,9 @@ io.on('connection', (socket) => {
     emitState(room);
   }
 
-  socket.on('create-room', ({ name }) => {
+  socket.on('create-room', ({ name, avatar }) => {
     name = (name || '').toString().trim().slice(0, 20);
+    avatar = (avatar || '').toString().trim().slice(0, 30) || 'clown';
     if (!name) return socket.emit('error-msg', 'Bitte einen Namen eingeben.');
     const code = generateCode();
     const room = {
@@ -252,15 +255,16 @@ io.on('connection', (socket) => {
     };
     rooms[code] = room;
     const player = {
-      id: socket.id, name, score: 0, hand: [],
+      id: socket.id, name, avatar, score: 0, hand: [],
       submission: null, vote: null, isHost: true, connected: true,
     };
     room.players.push(player);
     attach(room, player);
   });
 
-  socket.on('join-room', ({ code, name }) => {
+  socket.on('join-room', ({ code, name, avatar }) => {
     name = (name || '').toString().trim().slice(0, 20);
+    avatar = (avatar || '').toString().trim().slice(0, 30) || 'clown';
     code = (code || '').toString().trim().toUpperCase();
     if (!name) return socket.emit('error-msg', 'Bitte einen Namen eingeben.');
     const room = rooms[code];
@@ -270,6 +274,7 @@ io.on('connection', (socket) => {
       if (!dup.connected) {
         dup.id = socket.id;
         dup.connected = true;
+        if (avatar) dup.avatar = avatar;
         attach(room, dup);
         return;
       }
@@ -279,7 +284,7 @@ io.on('connection', (socket) => {
       return socket.emit('error-msg', 'Spiel läuft schon. Tritt mit deinem alten Namen wieder bei oder erstelle einen neuen Raum.');
     }
     const player = {
-      id: socket.id, name, score: 0, hand: [],
+      id: socket.id, name, avatar, score: 0, hand: [],
       submission: null, vote: null, isHost: false, connected: true,
     };
     room.players.push(player);
@@ -307,7 +312,7 @@ io.on('connection', (socket) => {
       currentRoom.submissions = shuffle(
         currentRoom.players
           .filter(p => p.submission)
-          .map(p => ({ playerId: p.id, playerName: p.name, card: p.submission }))
+          .map(p => ({ playerId: p.id, playerName: p.name, playerAvatar: p.avatar || 'clown', card: p.submission }))
       );
       currentRoom.state = 'reveal';
       currentRoom.revealedIndex = 0;

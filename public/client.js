@@ -8,6 +8,127 @@ const screens = {
 };
 
 let state = null;
+let selectedAvatar = localStorage.getItem('cah_avatar') || 'spiesser';
+let lastRevealedIndex = 0;
+let lastState = null;
+
+// --- Avatare ---
+const AVATARS = [
+  { id: 'spiesser', emoji: '🤡', label: 'Spießer' },
+  { id: 'querdenker', emoji: '😈', label: 'Querdenker' },
+  { id: 'schwiegermutter', emoji: '👵', label: 'Schwiegermutter' },
+  { id: 'stammtischopa', emoji: '👴', label: 'Stammtisch-Opa' },
+  { id: 'onkel-manfred', emoji: '🥴', label: 'Onkel Manfred' },
+  { id: 'bwler', emoji: '🤓', label: 'BWLer' },
+  { id: 'sparschwein', emoji: '🐷', label: 'Sparschwein' },
+  { id: 'troll', emoji: '💩', label: 'Online-Troll' },
+  { id: 'trinkkumpel', emoji: '🍻', label: 'Trinkkumpel' },
+  { id: 'bratwurst', emoji: '🌭', label: 'Bratwurst-Heini' },
+  { id: 'romeo', emoji: '🍆', label: 'Romeo' },
+  { id: 'hottie', emoji: '🍑', label: 'Hottie' },
+  { id: 'mama-aldi', emoji: '🤰', label: 'Mama bei Aldi' },
+  { id: 'reichsbuerger', emoji: '👽', label: 'Reichsbürger' },
+  { id: 'influencer', emoji: '🤖', label: 'Influencer' },
+  { id: 'esoterikerin', emoji: '🔮', label: 'Esoterikerin' },
+  { id: 'schuetzenkoenig', emoji: '🤠', label: 'Schützenkönig' },
+  { id: 'ex', emoji: '👻', label: 'Ex-Beziehung' },
+  { id: 'beerdiger', emoji: '💀', label: 'Beerdigungsstalker' },
+  { id: 'moechtegern', emoji: '👑', label: 'Möchtegern' },
+  { id: 'yogi', emoji: '🦄', label: 'Yogi auf MDMA' },
+  { id: 'beamte', emoji: '🐌', label: 'Beamtin' },
+  { id: 'wg-katze', emoji: '🐈‍⬛', label: 'WG-Katze' },
+  { id: 'immohai', emoji: '🦈', label: 'Immobilienhai' },
+  { id: 'babyface', emoji: '👶', label: 'Babyface' },
+];
+const avatarById = Object.fromEntries(AVATARS.map(a => [a.id, a]));
+
+function getAvatar(id) {
+  return avatarById[id] || AVATARS[0];
+}
+
+// --- Audio ---
+let _audioCtx = null;
+let muted = localStorage.getItem('cah_muted') === '1';
+
+function getAudio() {
+  if (muted) return null;
+  if (!_audioCtx) {
+    try {
+      _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { return null; }
+  }
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function playTone(freq, duration, type = 'sine', volume = 0.08) {
+  const ctx = getAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+
+function soundCardFlip() {
+  playTone(900, 0.04, 'square', 0.05);
+  setTimeout(() => playTone(1400, 0.08, 'sine', 0.04), 30);
+}
+function soundSubmit() {
+  playTone(440, 0.08, 'triangle', 0.07);
+  setTimeout(() => playTone(660, 0.12, 'sine', 0.06), 70);
+}
+function soundVote() {
+  playTone(800, 0.06, 'triangle', 0.06);
+}
+function soundWin() {
+  playTone(523, 0.13, 'sine', 0.08);
+  setTimeout(() => playTone(659, 0.13, 'sine', 0.08), 90);
+  setTimeout(() => playTone(784, 0.28, 'sine', 0.09), 180);
+}
+function soundTie() {
+  playTone(440, 0.15, 'triangle', 0.06);
+  setTimeout(() => playTone(370, 0.25, 'triangle', 0.06), 130);
+}
+function soundJoin() {
+  playTone(660, 0.08, 'sine', 0.05);
+  setTimeout(() => playTone(880, 0.1, 'sine', 0.05), 60);
+}
+
+// --- Speech ---
+let currentUtterance = null;
+
+function speak(text, btn) {
+  if (!('speechSynthesis' in window)) return;
+  if (currentUtterance) {
+    speechSynthesis.cancel();
+    document.querySelectorAll('.speak-btn.speaking').forEach(b => b.classList.remove('speaking'));
+    currentUtterance = null;
+  }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE';
+  u.rate = 1.0;
+  u.pitch = 1.0;
+  if (btn) {
+    btn.classList.add('speaking');
+    u.onend = u.onerror = () => btn.classList.remove('speaking');
+  }
+  currentUtterance = u;
+  speechSynthesis.speak(u);
+}
+
+function combinedText(blackText, white) {
+  if (!blackText) return '';
+  if (!white) return blackText.replace(/__/g, '');
+  if (blackText.includes('__')) return blackText.replace('__', white);
+  return blackText + ' ' + white;
+}
 
 function show(name) {
   for (const k of Object.keys(screens)) {
@@ -33,6 +154,40 @@ function renderBlack(text, fill) {
   return safe;
 }
 
+// --- Mute toggle ---
+function updateMuteButton() {
+  const b = $('#mute-btn');
+  if (!b) return;
+  b.textContent = muted ? '🔇' : '🔊';
+  b.classList.toggle('muted', muted);
+}
+$('#mute-btn').addEventListener('click', () => {
+  muted = !muted;
+  localStorage.setItem('cah_muted', muted ? '1' : '0');
+  updateMuteButton();
+  if (!muted) playTone(660, 0.06, 'sine', 0.05);
+});
+updateMuteButton();
+
+// --- Avatar grid ---
+function renderAvatarGrid() {
+  const grid = $('#avatar-grid');
+  grid.innerHTML = '';
+  for (const av of AVATARS) {
+    const el = document.createElement('div');
+    el.className = 'avatar-pick' + (av.id === selectedAvatar ? ' selected' : '');
+    el.innerHTML = `<span class="em">${av.emoji}</span><span class="lb">${av.label}</span>`;
+    el.addEventListener('click', () => {
+      selectedAvatar = av.id;
+      localStorage.setItem('cah_avatar', av.id);
+      renderAvatarGrid();
+      playTone(700, 0.04, 'triangle', 0.04);
+    });
+    grid.appendChild(el);
+  }
+}
+renderAvatarGrid();
+
 // --- Login ---
 const nameInput = $('#name-input');
 const codeInput = $('#code-input');
@@ -45,7 +200,7 @@ $('#create-btn').addEventListener('click', () => {
   const name = nameInput.value.trim();
   if (!name) { loginError.textContent = 'Bitte Namen eingeben.'; return; }
   localStorage.setItem('cah_name', name);
-  socket.emit('create-room', { name });
+  socket.emit('create-room', { name, avatar: selectedAvatar });
 });
 
 $('#join-btn').addEventListener('click', () => {
@@ -54,7 +209,7 @@ $('#join-btn').addEventListener('click', () => {
   if (!name) { loginError.textContent = 'Bitte Namen eingeben.'; return; }
   if (!code) { loginError.textContent = 'Bitte Raum-Code eingeben.'; return; }
   localStorage.setItem('cah_name', name);
-  socket.emit('join-room', { code, name });
+  socket.emit('join-room', { code, name, avatar: selectedAvatar });
 });
 
 codeInput.addEventListener('keyup', (e) => {
@@ -79,6 +234,7 @@ socket.on('joined', ({ code }) => {
   $('#room-code').textContent = code;
   $('#room-info').classList.remove('hidden');
   loginError.textContent = '';
+  soundJoin();
 });
 
 socket.on('error-msg', (msg) => {
@@ -86,19 +242,50 @@ socket.on('error-msg', (msg) => {
 });
 
 socket.on('state', (s) => {
+  const prev = state;
   state = s;
-  render();
+  triggerStateSounds(prev, s);
+  render(prev);
+  lastState = s;
 });
 
+function triggerStateSounds(prev, s) {
+  if (!prev) return;
+  if (prev.state !== s.state) {
+    if (s.state === 'reveal') {
+      // first card already counted by render
+    } else if (s.state === 'voting') {
+      playTone(330, 0.12, 'triangle', 0.05);
+    } else if (s.state === 'scoring') {
+      if (s.winner) {
+        if (s.winner.tied || s.winner.none) soundTie();
+        else soundWin();
+      }
+    }
+  }
+  // Submission revealed: play flip sound if revealedIndex increased
+  if (prev.state === 'reveal' && s.state === 'reveal' && s.revealedIndex > prev.revealedIndex) {
+    soundCardFlip();
+  }
+  if (prev.state === 'submitting' && s.state === 'reveal') {
+    // first reveal starts
+    soundCardFlip();
+  }
+  // Vote registered (your own vote)
+  if (s.state === 'voting' && typeof s.yourVote === 'number' && (!prev || prev.yourVote !== s.yourVote)) {
+    soundVote();
+  }
+}
+
 // --- Render ---
-function render() {
+function render(prev) {
   if (!state) return;
   if (state.state === 'lobby') {
     show('lobby');
     renderLobby();
   } else {
     show('game');
-    renderGame();
+    renderGame(prev);
   }
 }
 
@@ -107,11 +294,12 @@ function renderLobby() {
   const ul = $('#lobby-players');
   ul.innerHTML = '';
   for (const p of state.players) {
+    const av = getAvatar(p.avatar);
     const li = document.createElement('li');
     if (p.id === state.yourId) li.classList.add('you');
     if (!p.connected) li.classList.add('disconnected');
     li.innerHTML = `
-      <span>${escapeHtml(p.name)}${p.id === state.yourId ? ' (du)' : ''}${!p.connected ? ' (weg)' : ''}</span>
+      <span class="p-avatar"><span class="em">${av.emoji}</span><span class="nm">${escapeHtml(p.name)}${p.id === state.yourId ? ' (du)' : ''}${!p.connected ? ' (weg)' : ''}</span></span>
       <span>${p.isHost ? '<span class="tag host">Host</span>' : ''}</span>
     `;
     ul.appendChild(li);
@@ -125,9 +313,10 @@ function renderLobby() {
 
 $('#start-btn').addEventListener('click', () => {
   socket.emit('start-game');
+  playTone(523, 0.1); setTimeout(() => playTone(784, 0.18), 80);
 });
 
-function renderGame() {
+function renderGame(prev) {
   $('#room-code').textContent = state.code;
   $('#room-info').classList.remove('hidden');
 
@@ -136,6 +325,7 @@ function renderGame() {
   sb.innerHTML = '';
   const sorted = [...state.players].sort((a, b) => b.score - a.score);
   for (const p of sorted) {
+    const av = getAvatar(p.avatar);
     const li = document.createElement('li');
     if (p.id === state.yourId) li.classList.add('you');
     if (!p.connected) li.classList.add('disconnected');
@@ -144,7 +334,7 @@ function renderGame() {
     if (state.state === 'submitting' && p.hasSubmitted) tag += '<span class="tag done">Fertig</span>';
     if (state.state === 'voting' && p.hasVoted) tag += '<span class="tag done">Gewählt</span>';
     li.innerHTML = `
-      <span>${escapeHtml(p.name)}${p.id === state.yourId ? ' (du)' : ''} ${tag}</span>
+      <span class="p-avatar"><span class="em">${av.emoji}</span><span class="nm">${escapeHtml(p.name)}${p.id === state.yourId ? ' (du)' : ''} ${tag}</span></span>
       <span class="score-num">${p.score}</span>
     `;
     sb.appendChild(li);
@@ -199,15 +389,20 @@ function renderGame() {
     state.submissions.forEach((s) => {
       const card = document.createElement('div');
       card.className = 'card white submission-card';
+
+      // Animate the freshly-revealed card during reveal phase
+      if (state.state === 'reveal' && prev && s.revealed && s.index === state.revealedIndex - 1 && (!prev.submissions[s.index] || !prev.submissions[s.index].revealed)) {
+        card.classList.add('revealing');
+      }
+
       if (!s.revealed) {
         card.classList.add('face-down');
         card.innerHTML = '';
       } else {
         card.textContent = s.card;
       }
-      // Mark own submission
-      const yourSub = state.submissions.find(x => x.index === s.index);
-      // We don't know playerId of submission until scoring; but we can find by yourSubmission text match in voting
+
+      // Mark own submission (during voting we know our card text)
       if (state.state === 'voting' && state.yourSubmission && s.card === state.yourSubmission) {
         card.classList.add('your-own', 'disabled');
         const tag = document.createElement('div');
@@ -215,10 +410,12 @@ function renderGame() {
         tag.textContent = 'Deine';
         card.appendChild(tag);
       }
+
       // Selected vote
       if (state.state === 'voting' && state.yourVote === s.index) {
         card.classList.add('selected');
       }
+
       // Vote click
       if (state.state === 'voting' && s.revealed) {
         const isOwn = state.yourSubmission && s.card === state.yourSubmission;
@@ -229,12 +426,14 @@ function renderGame() {
           card.classList.add('disabled');
         }
       }
-      // Scoring: show player name & votes
+
+      // Scoring: show player avatar & votes
       if (state.state === 'scoring') {
         if (s.playerName) {
+          const av = getAvatar(s.playerAvatar);
           const tag = document.createElement('div');
-          tag.className = 'player-tag';
-          tag.textContent = s.playerName;
+          tag.className = 'avatar-tag';
+          tag.innerHTML = `<span class="em">${av.emoji}</span><span>${escapeHtml(s.playerName)}</span>`;
           card.appendChild(tag);
         }
         if (s.votes !== null && s.votes > 0) {
@@ -246,10 +445,24 @@ function renderGame() {
         if (state.winner && !state.winner.tied && state.winner.index === s.index) {
           card.classList.add('winner');
         }
-        if (state.winner && state.winner.tied && state.winner.indices.includes(s.index)) {
+        if (state.winner && state.winner.tied && state.winner.indices && state.winner.indices.includes(s.index)) {
           card.classList.add('winner');
         }
       }
+
+      // Speak button on revealed cards (reveal/voting/scoring)
+      if (s.revealed && s.card) {
+        const speakBtn = document.createElement('button');
+        speakBtn.className = 'speak-btn';
+        speakBtn.textContent = '🔊';
+        speakBtn.title = 'Vorlesen';
+        speakBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          speak(combinedText(state.blackCard, s.card), speakBtn);
+        });
+        card.appendChild(speakBtn);
+      }
+
       subs.appendChild(card);
     });
   }
@@ -264,13 +477,21 @@ function renderGame() {
       const names = state.winner.submissions.map(s => escapeHtml(s.playerName)).join(' & ');
       winnerEl.innerHTML = `<h3>Unentschieden!</h3><p>${names} mit je ${state.winner.votes} Stimme${state.winner.votes === 1 ? '' : 'n'}. Kein Punkt.</p>`;
     } else {
-      winnerEl.innerHTML = `<h3>🏆 ${escapeHtml(state.winner.playerName)} gewinnt!</h3><p>"${escapeHtml(state.winner.card)}" – ${state.winner.votes} Stimme${state.winner.votes === 1 ? '' : 'n'} · +1 Punkt</p>`;
+      const av = getAvatar(state.players.find(p => p.name === state.winner.playerName)?.avatar);
+      winnerEl.innerHTML = `<h3>🏆 ${av.emoji} ${escapeHtml(state.winner.playerName)} gewinnt!</h3><p>"${escapeHtml(state.winner.card)}" – ${state.winner.votes} Stimme${state.winner.votes === 1 ? '' : 'n'} · +1 Punkt</p>`;
+    }
+    // Auto-read winner sentence (only on transition into scoring)
+    if (prev && prev.state !== 'scoring' && state.winner && !state.winner.none) {
+      const text = state.winner.tied
+        ? 'Unentschieden!'
+        : combinedText(state.blackCard, state.winner.card);
+      setTimeout(() => speak(text, null), 700);
     }
   } else {
     winnerEl.classList.add('hidden');
   }
 
-  // Auto-progress countdown (no host buttons anymore)
+  // Auto-progress countdown
   const hc = $('#host-controls');
   hc.innerHTML = '';
   hc.classList.add('hidden');
@@ -305,7 +526,11 @@ function renderGame() {
       const el = document.createElement('div');
       el.className = 'card white';
       el.textContent = card;
-      el.addEventListener('click', () => socket.emit('submit-card', { card }));
+      el.addEventListener('click', () => {
+        el.classList.add('submit-pulse');
+        soundSubmit();
+        socket.emit('submit-card', { card });
+      });
       hand.appendChild(el);
     }
   } else if (state.state === 'submitting' && state.yourSubmission) {

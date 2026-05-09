@@ -9,9 +9,12 @@
 <body>
   <header>
     <h1>Kampf gegen das Spießertum</h1>
-    <div id="room-info" class="hidden">
-      Raum <code id="room-code"></code>
-      <button id="leave-btn" class="ghost small">Verlassen</button>
+    <div class="header-right">
+      <button id="mute-btn" class="ghost small" title="Sound an/aus">🔊</button>
+      <div id="room-info" class="hidden">
+        Raum <code id="room-code"></code>
+        <button id="leave-btn" class="ghost small">Verlassen</button>
+      </div>
     </div>
   </header>
 
@@ -23,6 +26,8 @@
         <label>Dein Name
           <input id="name-input" type="text" maxlength="20" placeholder="z. B. Yanni" />
         </label>
+        <label>Wähl deinen Avatar</label>
+        <div id="avatar-grid" class="avatar-grid"></div>
         <div class="row">
           <button id="create-btn" class="primary">Neuen Raum erstellen</button>
         </div>
