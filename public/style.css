@@ -105,6 +105,24 @@ header {
 }
 #mute-btn.muted { opacity: 0.4; }
 
+#voice-select {
+  background: var(--surface-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  max-width: 220px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+#voice-select:hover { border-color: var(--border-strong); }
+#voice-select:focus { outline: none; border-color: var(--primary); }
+@media (max-width: 720px) {
+  #voice-select { max-width: 140px; font-size: 11px; padding: 4px 8px; }
+}
+
 #room-info {
   font-size: 13px;
   display: flex;

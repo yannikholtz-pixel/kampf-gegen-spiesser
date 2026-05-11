@@ -103,6 +103,84 @@ function soundJoin() {
 
 // --- Speech ---
 let currentUtterance = null;
+let _voices = [];
+let _selectedVoice = null;
+let _userVoiceId = localStorage.getItem('cah_voice') || null;
+
+function voiceScore(v) {
+  const n = (v.name || '').toLowerCase();
+  let s = 0;
+  // Azure Neural via Edge/Windows — top tier
+  if (n.includes('natural')) s += 200;
+  if (n.includes('online')) s += 100;
+  // Apple's premium / enhanced voices
+  if (n.includes('premium') || n.includes('enhanced')) s += 80;
+  // Modern neural variants
+  if (n.includes('neural') || n.includes('wavenet')) s += 70;
+  // Google-branded — usually fine
+  if (n.includes('google')) s += 40;
+  // Apple German names
+  if (/(anna|petra|markus|reed|martin|viktoria)/.test(n)) s += 20;
+  // Cloud-backed (non-local) usually better
+  if (v.localService === false) s += 15;
+  // Prefer de-DE over de-AT, de-CH
+  if (v.lang === 'de-DE') s += 10;
+  else if (v.lang && v.lang.toLowerCase().startsWith('de')) s += 5;
+  return s;
+}
+
+function pickBestGermanVoice(voices) {
+  const german = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('de'));
+  if (german.length === 0) return voices[0] || null;
+  german.sort((a, b) => voiceScore(b) - voiceScore(a));
+  return german[0];
+}
+
+function loadVoices() {
+  if (!('speechSynthesis' in window)) return;
+  const update = () => {
+    _voices = speechSynthesis.getVoices();
+    if (!_voices.length) return false;
+    // Apply user choice if it still exists
+    if (_userVoiceId) {
+      const found = _voices.find(v => v.voiceURI === _userVoiceId || v.name === _userVoiceId);
+      if (found) { _selectedVoice = found; populateVoicePicker(); return true; }
+    }
+    _selectedVoice = pickBestGermanVoice(_voices);
+    populateVoicePicker();
+    return true;
+  };
+  if (!update()) {
+    speechSynthesis.onvoiceschanged = update;
+  }
+}
+
+function populateVoicePicker() {
+  const sel = document.getElementById('voice-select');
+  if (!sel) return;
+  const german = _voices
+    .filter(v => v.lang && v.lang.toLowerCase().startsWith('de'))
+    .sort((a, b) => voiceScore(b) - voiceScore(a));
+  if (german.length === 0) {
+    sel.innerHTML = '<option>(keine deutschen Stimmen verfügbar)</option>';
+    return;
+  }
+  sel.innerHTML = '';
+  for (const v of german) {
+    const opt = document.createElement('option');
+    opt.value = v.voiceURI || v.name;
+    let label = v.name;
+    // Hint quality
+    const n = v.name.toLowerCase();
+    if (n.includes('natural') || n.includes('neural') || n.includes('premium')) label += ' ★';
+    else if (n.includes('google') || n.includes('online')) label += ' ✓';
+    opt.textContent = label;
+    if (_selectedVoice && (v.voiceURI === _selectedVoice.voiceURI || v.name === _selectedVoice.name)) {
+      opt.selected = true;
+    }
+    sel.appendChild(opt);
+  }
+}
 
 function speak(text, btn) {
   if (!('speechSynthesis' in window)) return;
@@ -113,8 +191,11 @@ function speak(text, btn) {
   }
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'de-DE';
-  u.rate = 1.0;
+  if (_selectedVoice) u.voice = _selectedVoice;
+  // Slightly slower & natural pitch = less robotic
+  u.rate = 0.96;
   u.pitch = 1.0;
+  u.volume = 1.0;
   if (btn) {
     btn.classList.add('speaking');
     u.onend = u.onerror = () => btn.classList.remove('speaking');
@@ -122,6 +203,9 @@ function speak(text, btn) {
   currentUtterance = u;
   speechSynthesis.speak(u);
 }
+
+// Load voices on init
+loadVoices();
 
 function combinedText(blackText, white) {
   if (!blackText) return '';
@@ -206,6 +290,22 @@ $('#mute-btn').addEventListener('click', () => {
   if (!muted) playTone(660, 0.06, 'sine', 0.05);
 });
 updateMuteButton();
+
+// Voice picker
+const voiceSelect = document.getElementById('voice-select');
+if (voiceSelect) {
+  voiceSelect.addEventListener('change', () => {
+    const id = voiceSelect.value;
+    const found = _voices.find(v => v.voiceURI === id || v.name === id);
+    if (found) {
+      _selectedVoice = found;
+      _userVoiceId = id;
+      localStorage.setItem('cah_voice', id);
+      // Demo
+      speak('Hallo, so klinge ich.', null);
+    }
+  });
+}
 
 // --- Avatar grid ---
 function renderAvatarGrid() {
