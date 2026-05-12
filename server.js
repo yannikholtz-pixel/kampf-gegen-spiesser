@@ -225,7 +225,7 @@ io.on('connection', (socket) => {
         if (rooms[room.code] && rooms[room.code].players.every(p => !p.connected)) {
           delete rooms[room.code];
         }
-      }, 60_000);
+      }, 5 * 60_000);
       emitState(currentRoom);
     }
     currentRoom = null;

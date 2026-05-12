@@ -367,12 +367,64 @@ $('#leave-btn').addEventListener('click', () => {
   show('login');
 });
 
+// --- Rejoin handling ---
+const REJOIN_TTL_MS = 15 * 60 * 1000;
+
+function saveLastSession(code, name, avatar) {
+  try {
+    localStorage.setItem('cah_last_room', JSON.stringify({ code, name, avatar, ts: Date.now() }));
+  } catch (e) {}
+}
+function getLastSession() {
+  try {
+    const raw = localStorage.getItem('cah_last_room');
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || !data.code || !data.name) return null;
+    if (Date.now() - (data.ts || 0) > REJOIN_TTL_MS) return null;
+    return data;
+  } catch (e) { return null; }
+}
+function clearLastSession() {
+  try { localStorage.removeItem('cah_last_room'); } catch (e) {}
+}
+
+function renderRejoinArea() {
+  const area = document.getElementById('rejoin-area');
+  const info = document.getElementById('rejoin-info');
+  const data = getLastSession();
+  if (data && area) {
+    const ageMin = Math.max(0, Math.round((Date.now() - data.ts) / 60000));
+    info.textContent = `Letzter Raum: ${data.code} als ${data.name} (vor ${ageMin} Min)`;
+    area.style.display = '';
+  } else if (area) {
+    area.style.display = 'none';
+  }
+}
+renderRejoinArea();
+
+const rejoinBtn = document.getElementById('rejoin-btn');
+if (rejoinBtn) {
+  rejoinBtn.addEventListener('click', () => {
+    const data = getLastSession();
+    if (!data) { renderRejoinArea(); return; }
+    if (data.name) nameInput.value = data.name;
+    if (data.avatar) {
+      selectedAvatar = data.avatar;
+      renderAvatarGrid();
+    }
+    loginError.textContent = '';
+    socket.emit('join-room', { code: data.code, name: data.name, avatar: data.avatar || selectedAvatar });
+  });
+}
+
 // --- Socket events ---
 socket.on('joined', ({ code }) => {
   $('#room-code').textContent = code;
   $('#room-info').classList.remove('hidden');
   loginError.textContent = '';
   soundJoin();
+  saveLastSession(code, nameInput.value.trim(), selectedAvatar);
 });
 
 socket.on('error-msg', (msg) => {

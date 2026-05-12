@@ -281,6 +281,20 @@ button:disabled {
   margin: 12px 0 0;
   font-size: 14px;
 }
+
+.rejoin-area {
+  background: linear-gradient(135deg, rgba(255, 184, 0, 0.08), rgba(255, 59, 59, 0.04));
+  border: 1px solid rgba(255, 184, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.rejoin-info {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+}
 .hint {
   color: var(--text-faint);
   font-size: 12px;
